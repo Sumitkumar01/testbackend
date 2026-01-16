@@ -5,8 +5,13 @@ app.use(express.json());
 
 const verifyToken = process.env.VERIFY_TOKEN;
 
-// Webhook verification (GET)
+
 app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
+// Webhook verification (GET)
+app.get("/webhook", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
@@ -19,7 +24,7 @@ app.get("/", (req, res) => {
 });
 
 // Webhook events (POST)
-app.post("/", (req, res) => {
+app.post("/webhook", (req, res) => {
   console.log("📩 Webhook event received:");
   console.log(JSON.stringify(req.body, null, 2));
   res.sendStatus(200);
