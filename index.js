@@ -1,34 +1,44 @@
 const express = require("express");
 
+// Create an Express app
 const app = express();
+
+// Middleware to parse JSON bodies
 app.use(express.json());
 
+// Set port and verify_token
+const port = process.env.PORT || 3000;
 const verifyToken = process.env.VERIFY_TOKEN;
-
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-// Webhook verification (GET)
+// Route for GET requests
 app.get("/webhook", (req, res) => {
-  const mode = req.query["hub.mode"];
-  const token = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
+  const {
+    "hub.mode": mode,
+    "hub.challenge": challenge,
+    "hub.verify_token": token,
+  } = req.query;
 
   if (mode === "subscribe" && token === verifyToken) {
-    console.log("✅ WEBHOOK VERIFIED");
-    return res.status(200).send(challenge);
+    console.log("WEBHOOK VERIFIED");
+    res.status(200).send(challenge);
+  } else {
+    res.status(403).end();
   }
-  return res.sendStatus(403);
 });
 
-// Webhook events (POST)
+// Route for POST requests
 app.post("/webhook", (req, res) => {
-  console.log("📩 Webhook event received:");
+  const timestamp = new Date().toISOString().replace("T", " ").slice(0, 19);
+  console.log(`\n\nWebhook received ${timestamp}\n`);
   console.log(JSON.stringify(req.body, null, 2));
-  res.sendStatus(200);
+  res.status(200).end();
 });
 
-// 🔴 IMPORTANT: export the app (NO app.listen)
-module.exports = app;
+// Start the server
+app.listen(port, () => {
+  console.log(`\nListening on port ${port}\n`);
+});
